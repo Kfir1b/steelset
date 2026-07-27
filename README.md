@@ -3,6 +3,8 @@
 Cross-platform training tracker: **React + Capacitor + Supabase**
 Runs on iOS, Android, macOS/Desktop, and Web from one codebase.
 
+Built by **[Kfir Brodbeker](https://github.com/Kfir1b)**.
+
 ---
 
 ## 🚀 Quick Start
@@ -67,3 +69,8 @@ cd electron && npm install && npm start
 - Rest timer
 - Export as CSV
 - Apple Health / Google Fit integration
+
+---
+
+## 👤 Author
+**Kfir Brodbeker** — [github.com/Kfir1b](https://github.com/Kfir1b)
