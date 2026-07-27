@@ -1,16 +1,47 @@
 # 🏋️ SteelSet — Training Tracker
 
-Cross-platform training tracker: **React + Capacitor + Supabase**
-Runs on iOS, Android, macOS/Desktop, and Web from one codebase.
+**Load the bar, own the set, dominate your goals.**
+
+A cross-platform training tracker that runs on **iOS, Android, desktop, and web** from a single codebase — with real-time cloud sync, secure per-user data, and native mobile builds.
+
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![Capacitor](https://img.shields.io/badge/Capacitor-6-119EFF?logo=capacitor&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Postgres-3ECF8E?logo=supabase&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
 
 Built by **[Kfir Brodbeker](https://github.com/Kfir1b)**.
+
+---
+
+## ✨ What it does
+
+- 🔐 **Email authentication** — sign up / sign in, secure sessions
+- 🏋️ **Log workouts** — type, date, sets, reps, weight (kg or lbs)
+- ⚡ **Quick-add exercises** by workout type
+- 📊 **Dashboard** with weekly stats + volume tracking
+- 📅 **Full history** grouped by month, filterable by type
+- 🔎 **Workout detail** view with per-exercise set breakdown
+- ☁️ **Real-time sync** across all devices via Supabase
+- 🛡️ **Row Level Security** — every user only ever sees their own data
+
+## 🧱 Tech & architecture
+
+| Layer | Choice |
+|-------|--------|
+| **UI** | React 18 + React Router |
+| **Build** | Vite 5 |
+| **Backend** | Supabase (Postgres + Auth + real-time) |
+| **Cross-platform** | Capacitor 6 → native iOS & Android from the same web codebase |
+| **Deploy** | Vercel (web) |
+
+One React codebase compiles to **web, iOS, Android, and desktop** — no separate native apps to maintain. Data security is enforced at the database level with **Postgres Row Level Security**, not just in the client.
 
 ---
 
 ## 🚀 Quick Start
 
 ### 1. Set up Supabase (5 min)
-1. Create free account at [supabase.com](https://supabase.com)
+1. Create a free account at [supabase.com](https://supabase.com)
 2. New Project → SQL Editor → New Query
 3. Paste `supabase-schema.sql` contents → Run
 4. Settings → API → copy **Project URL** and **anon public key**
@@ -52,17 +83,7 @@ cd electron && npm install && npm start
 
 ---
 
-## ✨ Features
-- Email auth (sign up / sign in)
-- Log workouts: type, date, sets, reps, weight (kg or lbs)
-- Quick-add exercises by workout type
-- Dashboard with weekly stats + volume tracking
-- Full history grouped by month, filterable by type
-- Workout detail with per-exercise set breakdown
-- Real-time sync across all devices via Supabase
-- Row Level Security: users only ever see their own data
-
-## 🔮 Ideas for Later
+## 🔮 Roadmap
 - Progress charts per exercise
 - Personal bests tracker
 - Workout templates / programs
@@ -74,3 +95,7 @@ cd electron && npm install && npm start
 
 ## 👤 Author
 **Kfir Brodbeker** — [github.com/Kfir1b](https://github.com/Kfir1b)
+
+## 📄 License
+© 2026 Kfir Brodbeker. **All rights reserved.**
+This source is published for portfolio and evaluation purposes. You may view it, but it may not be copied, reused, redistributed, or used to create derivative works without express written permission.
