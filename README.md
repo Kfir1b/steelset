@@ -9,6 +9,8 @@ A cross-platform training tracker that runs on **iOS, Android, desktop, and web*
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres-3ECF8E?logo=supabase&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
 
+### 🔗 [**Live Demo → steelset.vercel.app**](https://steelset.vercel.app)
+
 Built by **[Kfir Brodbeker](https://github.com/Kfir1b)**.
 
 ---
