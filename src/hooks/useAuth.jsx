@@ -1,13 +1,22 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { supabase, isConfigured } from '../lib/supabase'
+import { isDemo, DEMO_USER } from '../lib/demo'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [demo, setDemo] = useState(isDemo())
 
   useEffect(() => {
+    // Demo mode short-circuits Supabase entirely.
+    if (isDemo()) {
+      setUser(DEMO_USER)
+      setDemo(true)
+      setLoading(false)
+      return
+    }
     if (!isConfigured) {
       setLoading(false)
       return
@@ -23,7 +32,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, demo }}>
       {children}
     </AuthContext.Provider>
   )

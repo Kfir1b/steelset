@@ -9,9 +9,19 @@ A cross-platform training tracker that runs on **iOS, Android, desktop, and web*
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres-3ECF8E?logo=supabase&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
 
-### 🔗 [**Live Demo → steelset.vercel.app**](https://steelset.vercel.app)
+### 🔗 [**Live Demo → steelset.vercel.app**](https://steelset.vercel.app/?demo=1)
+
+No signup required — the demo link drops you straight into a populated account.
 
 Built by **[Kfir Brodbeker](https://github.com/Kfir1b)**.
+
+---
+
+## 📸 Screenshots
+
+| Dashboard | History | Progress |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/dashboard.png" width="240" alt="Dashboard with weekly stats and recent workouts" /> | <img src="docs/screenshots/history.png" width="240" alt="Workout history grouped and filterable by type" /> | <img src="docs/screenshots/progress.png" width="240" alt="Per-exercise progress chart showing max weight over time" /> |
 
 ---
 
@@ -25,6 +35,7 @@ Built by **[Kfir Brodbeker](https://github.com/Kfir1b)**.
 - 🔎 **Workout detail** view with per-exercise set breakdown
 - ☁️ **Real-time sync** across all devices via Supabase
 - 🛡️ **Row Level Security** — every user only ever sees their own data
+- ⚡ **Demo mode** — explore the full app with sample data, no account needed
 
 ## 🧱 Tech & architecture
 

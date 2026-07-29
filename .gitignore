@@ -26,3 +26,6 @@ npm-debug.log*
 Thumbs.db
 .idea/
 *.swp
+
+# Claude Code local config
+.claude/

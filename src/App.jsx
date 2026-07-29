@@ -11,12 +11,27 @@ import ProgressPage from './pages/ProgressPage'
 import ExercisePage from './pages/ExercisePage'
 import NavBar from './components/NavBar'
 
+function DemoBanner() {
+  return (
+    <div style={{
+      background: '#FF6B2B', color: '#0a0a0a',
+      padding: 'calc(6px + var(--safe-top)) 12px 6px',
+      textAlign: 'center', fontFamily: "'Space Mono', monospace",
+      fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em',
+      flexShrink: 0
+    }}>
+      DEMO MODE — SAMPLE DATA, NOTHING IS SAVED
+    </div>
+  )
+}
+
 function ProtectedRoutes() {
-  const { user, loading } = useAuth()
+  const { user, loading, demo } = useAuth()
   if (loading) return <LoadingScreen />
   if (!user) return <Navigate to="/auth" replace />
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {demo && <DemoBanner />}
       <div style={{ flex: 1, overflow: 'auto', paddingBottom: '80px' }}>
         <Routes>
           <Route path="/" element={<DashboardPage />} />

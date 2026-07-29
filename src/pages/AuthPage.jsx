@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { signIn, signUp } from '../lib/db'
+import { startDemo } from '../lib/demo'
 
 export default function AuthPage() {
   const [mode, setMode] = useState('login')
@@ -10,6 +11,12 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false)
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
   const navigate = useNavigate()
+
+  function handleDemo() {
+    startDemo()
+    // Full reload so AuthProvider picks up the demo session on boot.
+    window.location.assign('/')
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -116,6 +123,35 @@ export default function AuthPage() {
             {loading ? 'LOADING...' : mode === 'login' ? 'SIGN IN' : 'CREATE ACCOUNT'}
           </button>
         </form>
+
+        {/* Demo entry — lets recruiters/visitors explore with sample data, no signup */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '24px 0 16px' }}>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+          <span style={{
+            fontFamily: 'var(--font-mono)', fontSize: '10px',
+            color: 'var(--text-muted)', letterSpacing: '0.1em'
+          }}>
+            OR
+          </span>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+        </div>
+
+        <button type="button" onClick={handleDemo} style={{
+          width: '100%', padding: '16px',
+          background: 'transparent', color: 'var(--accent)',
+          border: '1px solid var(--accent)', borderRadius: '8px',
+          fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700,
+          letterSpacing: '0.1em', transition: 'all 0.2s', cursor: 'pointer'
+        }}>
+          ⚡ TRY THE DEMO
+        </button>
+        <p style={{
+          marginTop: '10px', textAlign: 'center',
+          fontFamily: 'var(--font-mono)', fontSize: '11px',
+          color: 'var(--text-muted)', lineHeight: 1.6
+        }}>
+          Explore the full app with sample workouts — no account needed.
+        </p>
 
         <p style={{
           marginTop: '24px', textAlign: 'center',
