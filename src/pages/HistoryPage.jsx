@@ -150,14 +150,20 @@ export default function HistoryPage() {
               </div>
 
               {/* Expanded sets */}
-              {expanded === w.id && w.sets && w.sets.length > 0 && (
+              {/* Rendered even with no sets, so an empty workout can still be deleted */}
+              {expanded === w.id && (
                 <div style={{
                   background: 'var(--surface2)', borderRadius: '0 0 var(--radius) var(--radius)',
                   border: `1px solid ${TYPE_COLOR[w.type] || 'var(--border)'}`,
                   borderTop: 'none', padding: '16px'
                 }}>
+                  {!w.sets?.length && (
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-muted)' }}>
+                      No sets logged.
+                    </div>
+                  )}
                   {Object.entries(
-                    w.sets.reduce((acc, s) => {
+                    (w.sets || []).reduce((acc, s) => {
                       if (!acc[s.exercise]) acc[s.exercise] = []
                       acc[s.exercise].push(s)
                       return acc

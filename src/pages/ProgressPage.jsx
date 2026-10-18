@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { getWorkouts } from '../lib/db'
 
+const KG_PER_LB = 0.45359237
+
 export default function ProgressPage() {
   const { user } = useAuth()
   const [workouts, setWorkouts] = useState([])
@@ -27,7 +29,11 @@ export default function ProgressPage() {
 
   const exercises = Object.keys(exerciseMap).sort()
 
-  const getMax = (sets) => Math.max(...sets.map(s => s.weight || 0))
+  // Compare weights in kg so e.g. 150lbs (68kg) doesn't beat 85kg, but show
+  // each set in the unit it was logged in.
+  const toKg = s => (s.unit === 'lbs' ? (s.weight || 0) * KG_PER_LB : (s.weight || 0))
+  const getBest = (sets) => sets.reduce((best, s) => (toKg(s) > toKg(best) ? s : best))
+  const formatWeight = s => `${s.weight || 0}${s.unit || 'kg'}`
   const getVolume = (sets) => sets.reduce((a, s) => a + (s.reps * (s.weight || 0)), 0)
 
   const history = selectedExercise ? exerciseMap[selectedExercise] || [] : []
@@ -38,7 +44,10 @@ export default function ProgressPage() {
   }, {})
   const dateEntries = Object.entries(byDate).sort((a, b) => a[0].localeCompare(b[0]))
 
-  const maxWeight = dateEntries.length > 0 ? Math.max(...dateEntries.map(([, sets]) => getMax(sets))) : 0
+  const maxWeight = dateEntries.length > 0 ? Math.max(...dateEntries.map(([, sets]) => toKg(getBest(sets)))) : 0
+  const best = history.length > 0 ? getBest(history) : null
+  // Chart labels are bare numbers unless the history mixes kg and lbs
+  const mixedUnits = new Set(history.map(s => s.unit || 'kg')).size > 1
   const chartMax = maxWeight * 1.2 || 100
 
   return (
@@ -84,8 +93,8 @@ export default function ProgressPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
                 <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '20px' }}>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: '28px', fontWeight: 700, color: 'var(--accent)' }}>
-                    {getMax(history)}
-                    <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{history[0]?.unit || 'kg'}</span>
+                    {best.weight || 0}
+                    <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{best.unit || 'kg'}</span>
                   </div>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', letterSpacing: '0.08em' }}>BEST WEIGHT</div>
                 </div>
@@ -110,12 +119,11 @@ export default function ProgressPage() {
                     <svg viewBox={`0 0 ${dateEntries.length * 40} 120`} style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                       {dateEntries.map(([date, sets], i) => {
                         const x = i * 40 + 20
-                        const maxW = getMax(sets)
-                        const y = 110 - (maxW / chartMax) * 100
+                        const sessionBest = getBest(sets)
+                        const y = 110 - (toKg(sessionBest) / chartMax) * 100
                         const prevEntry = dateEntries[i - 1]
                         const prevX = (i - 1) * 40 + 20
-                        const prevMaxW = prevEntry ? getMax(prevEntry[1]) : maxW
-                        const prevY = prevEntry ? 110 - (prevMaxW / chartMax) * 100 : y
+                        const prevY = prevEntry ? 110 - (toKg(getBest(prevEntry[1])) / chartMax) * 100 : y
                         return (
                           <g key={date}>
                             {i > 0 && (
@@ -129,7 +137,7 @@ export default function ProgressPage() {
                             </text>
                             <text x={x} y={y - 9} textAnchor="middle" fill="#FF6B2B"
                               style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-                              {maxW}
+                              {mixedUnits ? formatWeight(sessionBest) : sessionBest.weight || 0}
                             </text>
                           </g>
                         )
@@ -156,7 +164,7 @@ export default function ProgressPage() {
                     <div style={{ display: 'flex', gap: '16px' }}>
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)', fontSize: '13px' }}>
-                          {getMax(sets)}{sets[0]?.unit}
+                          {formatWeight(getBest(sets))}
                         </div>
                         <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-muted)' }}>MAX</div>
                       </div>

@@ -6,9 +6,17 @@ import { createWorkout, addSet, deleteSet } from '../lib/db'
 const WORKOUT_TYPES = ['Push', 'Pull', 'Legs', 'Full', 'Cardio', 'Rest']
 const UNITS = ['kg', 'lbs']
 
+// Today's date as YYYY-MM-DD in the user's timezone. (toISOString() is UTC,
+// which gives the wrong day near midnight for anyone not on UTC.)
+function localToday() {
+  const d = new Date()
+  const pad = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
 export default function LogPage() {
   const { user } = useAuth()
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(localToday)
   const [type, setType] = useState('Push')
   const [notes, setNotes] = useState('')
   const [workout, setWorkout] = useState(null)
