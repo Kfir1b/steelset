@@ -10,17 +10,20 @@ const WORKOUT_COLORS = {
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  // Fetch per user id, not per user object: Supabase emits a new object on each
+  // auth event (initial session, token refresh), which refetched for nothing.
+  const userId = user?.id
   const navigate = useNavigate()
   const [workouts, setWorkouts] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) return
-    getWorkouts(user.id).then(({ data }) => {
+    if (!userId) return
+    getWorkouts(userId).then(({ data }) => {
       setWorkouts(data || [])
       setLoading(false)
     })
-  }, [user])
+  }, [userId])
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
   const recentWorkouts = workouts.slice(0, 5)

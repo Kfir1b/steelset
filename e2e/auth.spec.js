@@ -173,17 +173,38 @@ test.describe('sign in', () => {
       if (path === '/auth/v1/user') return { status: 200, json: USER }
     })
     await signIn(page)
-    const fetches = () => calls.filter(c => c.method === 'GET' && c.path === '/rest/v1/workouts').length
-    await expect.poll(fetches).toBeGreaterThan(0)
-    const before = fetches()
     await page.reload()
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
     await expect(page.getByText('No workouts yet.Start logging!')).toBeVisible()
-    // Restored from storage: still one sign-in request in total, and the
-    // workouts were fetched again with the restored session.
-    await expect.poll(fetches).toBeGreaterThan(before)
+    // Restored from storage: still one sign-in request in total
     expect(calls.filter(c => c.path === '/auth/v1/token')).toHaveLength(1)
   })
+
+  for (const [path, heading] of [['/', 'Dashboard'], ['/history', 'History'], ['/progress', 'Progress']]) {
+    test(`loading ${path} with a saved session fetches workouts exactly once`, async ({ page }) => {
+      const calls = await mockSupabase(page, ({ method, path: p }) => {
+        if (method === 'POST' && p === '/auth/v1/token') return { status: 200, json: session() }
+        if (p === '/rest/v1/workouts') return { status: 200, json: [] }
+        if (p === '/auth/v1/user') return { status: 200, json: USER }
+      })
+      const fetches = () => calls.filter(c => c.method === 'GET' && c.path === '/rest/v1/workouts').length
+      // Wait for the first fetch, then give a duplicate time to show up.
+      const settledFetchCount = async () => {
+        await expect.poll(fetches).toBeGreaterThan(0)
+        await page.waitForTimeout(1000)
+        return fetches()
+      }
+      await signIn(page)
+      expect(await settledFetchCount()).toBe(1)
+
+      // A fresh page load restores the session (Supabase fires its initial
+      // auth event on top of getSession); that must not trigger a second fetch.
+      calls.length = 0
+      await page.goto(path)
+      await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible()
+      expect(await settledFetchCount()).toBe(1)
+    })
+  }
 
   test('logout signs out with Supabase and returns to sign-in', async ({ page }) => {
     const calls = await mockSupabase(page, ({ method, path }) => {

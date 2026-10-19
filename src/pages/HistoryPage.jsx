@@ -10,6 +10,9 @@ const TYPE_COLOR = {
 
 export default function HistoryPage() {
   const { user } = useAuth()
+  // Fetch per user id, not per user object: Supabase emits a new object on each
+  // auth event (initial session, token refresh), which refetched for nothing.
+  const userId = user?.id
   const location = useLocation()
   const expandId = location.state?.expandId ?? null
   const expandRef = useRef(null)
@@ -23,12 +26,12 @@ export default function HistoryPage() {
   const TYPES = ['All', 'Push', 'Pull', 'Legs', 'Full', 'Cardio']
 
   useEffect(() => {
-    if (!user) return
-    getWorkouts(user.id).then(({ data }) => {
+    if (!userId) return
+    getWorkouts(userId).then(({ data }) => {
       setWorkouts(data || [])
       setLoading(false)
     })
-  }, [user])
+  }, [userId])
 
   // Scroll to the expanded workout once it renders
   useEffect(() => {
