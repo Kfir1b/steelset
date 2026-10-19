@@ -112,8 +112,20 @@ test.describe('exercise detail', () => {
   })
 
   test('hides the hero image if it fails to load', async ({ page }) => {
-    // External requests are blocked in tests, so the Unsplash image errors out.
-    await expect(page.getByRole('img', { name: 'Bench Press' })).toBeHidden()
+    // External requests are blocked in tests, so the Unsplash image errors out
+    // and the onError handler hides it (the element is still there).
+    const hero = page.locator('img[alt="Bench Press"]')
+    await expect(hero).toHaveCount(1)
+    await expect(hero).toHaveAttribute('src', /^https:\/\/source\.unsplash\.com\/600x300\/\?/)
+    await expect(hero).toHaveCSS('display', 'none')
+  })
+
+  test('the muscle diagram highlights primary and secondary muscles', async ({ page }) => {
+    const fill = id => page.locator(`svg [id="${id}"]`)
+    // Bench Press: primary Pectoralis Major; secondary Anterior Deltoid, Triceps
+    for (const id of ['pec-l', 'pec-r']) await expect(fill(id)).toHaveAttribute('fill', '#FF6B2B')
+    for (const id of ['delt-ant-l', 'delt-ant-r', 'tricep-l', 'tricep-r']) await expect(fill(id)).toHaveAttribute('fill', '#ff8c42')
+    for (const id of ['quad-l', 'abs', 'lat-l']) await expect(fill(id)).toHaveAttribute('fill', '#2a2520')
   })
 
   test('form cues, mistakes and pro tip tabs', async ({ page }) => {
@@ -136,6 +148,15 @@ test.describe('exercise detail', () => {
     await expect(page.getByRole('heading', { name: 'Exercise Library' })).toBeVisible()
     await expect(counter(page)).toHaveText(`${NAMES.length} EXERCISES`)
   })
+})
+
+test('the muscle diagram follows the exercise (Squat)', async ({ page }) => {
+  await card(page, 'Squat').click()
+  const fill = id => page.locator(`svg [id="${id}"]`)
+  // Squat: primary Quadriceps, Glutes; secondary includes Hamstrings
+  for (const id of ['quad-l', 'quad-r', 'glute-l', 'glute-r']) await expect(fill(id)).toHaveAttribute('fill', '#FF6B2B')
+  await expect(fill('ham-l')).toHaveAttribute('fill', '#ff8c42')
+  await expect(fill('pec-l')).toHaveAttribute('fill', '#2a2520')
 })
 
 test('back from a detail keeps the search and category', async ({ page }) => {

@@ -7,18 +7,18 @@ import {
 const CONFIRM_TEXT = 'Delete this workout and all its sets?'
 
 // Seed data (src/lib/demo.js PLAN) with the clock frozen at Sun 2026-10-18:
-// newest first, one card per workout.
+// newest first, one card per workout: [type, date, number of sets].
 const SEED_ORDER = [
-  ['Push', 'Sat, Oct 17, 2026'],
-  ['Pull', 'Thu, Oct 15, 2026'],
-  ['Legs', 'Tue, Oct 13, 2026'],
-  ['Cardio', 'Mon, Oct 12, 2026'],
-  ['Push', 'Sat, Oct 10, 2026'],
-  ['Pull', 'Thu, Oct 8, 2026'],
-  ['Legs', 'Tue, Oct 6, 2026'],
-  ['Full', 'Sat, Oct 3, 2026'],
-  ['Push', 'Tue, Sep 29, 2026'],
-  ['Legs', 'Sat, Sep 26, 2026'],
+  ['Push', 'Sat, Oct 17, 2026', 10],
+  ['Pull', 'Thu, Oct 15, 2026', 11],
+  ['Legs', 'Tue, Oct 13, 2026', 11],
+  ['Cardio', 'Mon, Oct 12, 2026', 1],
+  ['Push', 'Sat, Oct 10, 2026', 7],
+  ['Pull', 'Thu, Oct 8, 2026', 7],
+  ['Legs', 'Tue, Oct 6, 2026', 5],
+  ['Full', 'Sat, Oct 3, 2026', 6],
+  ['Push', 'Tue, Sep 29, 2026', 5],
+  ['Legs', 'Sat, Sep 26, 2026', 4],
 ]
 
 test.beforeEach(async ({ page }) => {
@@ -29,10 +29,10 @@ test.beforeEach(async ({ page }) => {
 test('lists all workouts newest first with type, date and set count', async ({ page }) => {
   const cards = historyCards(page)
   await expect(cards).toHaveCount(SEED_ORDER.length)
-  for (const [i, [type, date]] of SEED_ORDER.entries()) {
+  for (const [i, [type, date, sets]] of SEED_ORDER.entries()) {
     await expect(cards.nth(i)).toContainText(`${type} Day${date}`)
+    await expect(cardSetCount(cards.nth(i))).toHaveText(`${sets}SETS`)
   }
-  await expect(cardSetCount(cards.first())).toHaveText('10SETS')
   await expect(cards.first()).toContainText('"Felt strong, added 2.5kg to bench."')
 })
 
@@ -51,6 +51,16 @@ for (const [filter, count] of [['PUSH', 3], ['PULL', 2], ['LEGS', 3], ['FULL', 1
   })
 }
 
+test('filters are offered for every type except Rest', async ({ page }) => {
+  await expect(page.locator('.hide-scrollbar button')).toHaveText(['ALL', 'PUSH', 'PULL', 'LEGS', 'FULL', 'CARDIO'])
+})
+
+test('a Rest-day workout is listed under ALL', async ({ page }) => {
+  const note = await logWorkout(page, { type: 'Rest' })
+  await tab(page, 'History').click()
+  await expect(historyCards(page).first()).toContainText(`Rest DaySun, Oct 18, 2026"${note}"`)
+})
+
 test('ALL filter restores the full list', async ({ page }) => {
   await page.getByRole('button', { name: 'CARDIO', exact: true }).click()
   await expect(historyCards(page)).toHaveCount(1)
@@ -68,6 +78,19 @@ test('expanding a workout shows its sets grouped by exercise, in order', async (
   }
   const bench = card.getByText('BENCH PRESS', { exact: true }).locator('xpath=following-sibling::div[1]/div')
   await expect(bench).toHaveText(['S1 8r 80kg · Barbell', 'S2 8r 80kg · Barbell', 'S3 6r 85kg · Barbell'])
+})
+
+test('sets are shown in set-number order, whatever order they were stored in', async ({ page }) => {
+  const set = (id, set_number, reps, weight) =>
+    ({ id, workout_id: 'w-x', exercise: 'Bench Press', set_number, reps, weight, unit: 'kg', equipment: 'Barbell' })
+  await setDemoWorkouts(page, [{
+    id: 'w-x', user_id: 'demo-user', date: '2026-10-18', type: 'Push', notes: '', created_at: '2026-10-18T09:00:00.000Z',
+    sets: [set('c', 3, 5, 75), set('a', 1, 8, 60), set('b', 2, 6, 70)],
+  }])
+  const card = historyCards(page).first()
+  await cardHeader(card).click()
+  const bench = card.getByText('BENCH PRESS', { exact: true }).locator('xpath=following-sibling::div[1]/div')
+  await expect(bench).toHaveText(['S1 8r 60kg · Barbell', 'S2 6r 70kg · Barbell', 'S3 5r 75kg · Barbell'])
 })
 
 test('bodyweight sets show no weight', async ({ page }) => {
@@ -179,6 +202,8 @@ test('a workout with no sets can be expanded and deleted', async ({ page }) => {
 })
 
 test('a workout with sets does not show the "no sets" message', async ({ page }) => {
-  await cardHeader(historyCards(page).first()).click()
+  const card = historyCards(page).first()
+  await cardHeader(card).click()
+  await expect(card.getByText('BENCH PRESS', { exact: true })).toBeVisible() // panel is open
   await expect(page.getByText('No sets logged.')).toHaveCount(0)
 })

@@ -139,7 +139,7 @@ test.describe('sign in', () => {
     await expect(page.getByText('Invalid login credentials')).toBeHidden()
   })
 
-  test('valid credentials open the dashboard with the user\'s workouts', async ({ page }) => {
+  test('valid credentials open the dashboard with the user\'s workouts', async ({ page, supabaseRequests }) => {
     const calls = await mockSupabase(page, ({ method, path }) => {
       if (method === 'POST' && path === '/auth/v1/token') return { status: 200, json: session() }
       if (method === 'GET' && path === '/rest/v1/workouts') {
@@ -160,18 +160,29 @@ test.describe('sign in', () => {
     expect(list.query.get('select')).toBe('*,sets(*)')
     expect(list.query.get('user_id')).toBe(`eq.${USER.id}`)
     expect(list.query.get('order')).toBe('date.desc')
+
+    // The fixture's Supabase recorder sees this traffic, so the "never contacts
+    // Supabase" assertions elsewhere are meaningful.
+    expect(supabaseRequests.map(r => new URL(r.url()).pathname)).toContain('/auth/v1/token')
   })
 
   test('the session survives a reload', async ({ page }) => {
-    await mockSupabase(page, ({ method, path }) => {
+    const calls = await mockSupabase(page, ({ method, path }) => {
       if (method === 'POST' && path === '/auth/v1/token') return { status: 200, json: session() }
       if (path === '/rest/v1/workouts') return { status: 200, json: [] }
       if (path === '/auth/v1/user') return { status: 200, json: USER }
     })
     await signIn(page)
+    const fetches = () => calls.filter(c => c.method === 'GET' && c.path === '/rest/v1/workouts').length
+    await expect.poll(fetches).toBeGreaterThan(0)
+    const before = fetches()
     await page.reload()
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
     await expect(page.getByText('No workouts yet.Start logging!')).toBeVisible()
+    // Restored from storage: still one sign-in request in total, and the
+    // workouts were fetched again with the restored session.
+    await expect.poll(fetches).toBeGreaterThan(before)
+    expect(calls.filter(c => c.path === '/auth/v1/token')).toHaveLength(1)
   })
 
   test('logout signs out with Supabase and returns to sign-in', async ({ page }) => {

@@ -202,7 +202,9 @@ test.describe('add sets', () => {
     await repsInput(page).fill('5')
     await addSetButton(page).click()
     await expect(repsInput(page)).toHaveValue('5') // not cleared → not saved
-    await expect(page.getByText('No sets yet — add your first one above!')).toBeVisible()
+    // Then add the exercise: exactly one row proves the first submit was ignored.
+    await addSet(page, { exercise: 'Bench Press' })
+    await expect(logSetRows(page, 'Bench Press')).toHaveCount(1)
   })
 
   test('reps must be at least 1', async ({ page }) => {
@@ -210,7 +212,9 @@ test.describe('add sets', () => {
     await repsInput(page).fill('0')
     await addSetButton(page).click()
     expect(await repsInput(page).evaluate(el => el.validity.rangeUnderflow)).toBe(true)
-    await expect(page.getByText('No sets yet — add your first one above!')).toBeVisible()
+    // Then fix the reps: exactly one row proves the 0-rep submit was blocked.
+    await addSet(page, { reps: 3 })
+    await expect(logSetRows(page, 'Bench Press')).toHaveText([/^S13 reps/])
   })
 
   test('logged sets appear in History under the workout', async ({ page }) => {
@@ -230,7 +234,7 @@ test.describe('add sets', () => {
 })
 
 test('demo mode never contacts Supabase', async ({ page, supabaseRequests }) => {
-  const note = await logWorkout(page, { sets: [{ exercise: 'Bench Press', reps: 8, weight: 60 }] })
+  await logWorkout(page, { sets: [{ exercise: 'Bench Press', reps: 8, weight: 60 }] })
   await logSetRows(page, 'Bench Press').first().getByRole('button', { name: '×' }).click()
   await tab(page, 'History').click()
   await cardHeader(historyCard(page, 'Felt strong')).click()
@@ -238,6 +242,6 @@ test('demo mode never contacts Supabase', async ({ page, supabaseRequests }) => 
   await page.getByRole('button', { name: 'DELETE', exact: true }).click()
   await tab(page, 'Progress').click()
   await tab(page, 'Home').click()
-  expect(note).toBeTruthy()
+  // (auth.spec.js proves this recorder does capture Supabase traffic)
   expect(supabaseRequests.map(r => r.url())).toEqual([])
 })
